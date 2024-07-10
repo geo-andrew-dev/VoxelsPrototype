@@ -21,12 +21,21 @@
     <ClCompile Include="..\..\..\Dependencies\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="systems.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="shader.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="voxel.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chunk.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

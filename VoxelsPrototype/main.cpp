@@ -7,6 +7,8 @@
 
 #include "shader.h"
 #include "camera.h"
+#include "chunk.h"
+#include "voxel.h"
 
 #include <iostream>
 
@@ -36,7 +38,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Cubeworld", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -101,33 +103,29 @@ int main() {
 
 
     Shader currentShader = Shader("Shaders/simplevertexshader3D.vs", "Shaders/simplefragmentshader.fs");
-    //shader area
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    //copies user vertex data into the currently bound array buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertices), cube_vertices, GL_STATIC_DRAW);
-    //vertex array object set up
-    //expresses information regarding the structure of the vertex array
-    //such as how many elements one vertex has, which subsets are location and color values, etc
-    //position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    //color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    // glBindVertexArray(0);
+  
+    // Create a chunk
+    int chunkWidth = 3, chunkHeight = 3, chunkDepth = 3;
+    Chunk chunk(chunkWidth, chunkHeight, chunkDepth);
 
-    //A "fragment" in openGL is all of the data required to render a single pixel.
+    // Fill the chunk with some voxels
+    for (int x = 0; x < chunkWidth; ++x) {
+        for (int y = 0; y < chunkHeight; ++y) {
+            for (int z = 0; z < chunkDepth; ++z) {
+                chunk.setVoxel(x, y, z, Voxel());
+            }
+        }
+    }
+
+    chunk.buildMesh();
 
 
     camera = new Camera();
     glfwSetCursorPosCallback(window, mouse_callback);
     //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    // configure global opengl state
+    //glEnable(GL_DEPTH_TEST);
     
 
     /////////////////////////////////////////////////
@@ -144,7 +142,7 @@ int main() {
         processInput(window);
 
         // render
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         glm::mat4 model = glm::mat4(1.0f);
@@ -154,15 +152,16 @@ int main() {
         unsigned int viewLoc = glGetUniformLocation(currentShader.ID, "view");
         unsigned int projLoc = glGetUniformLocation(currentShader.ID, "projection");
         //pass the matrices to the shader
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+        //glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+        //glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        //glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         currentShader.use();
        
         //this is where we are actually drawing the square/cube/voxels
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        //glBindVertexArray(VAO);
+        //glDrawArrays(GL_TRIANGLES, 0, 36);
+        chunk.render(currentShader, view, projection);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------

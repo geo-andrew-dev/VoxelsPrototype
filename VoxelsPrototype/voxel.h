@@ -13,7 +13,7 @@ public:
 
 	Voxel();
 	Voxel(glm::vec3 position, glm::vec3 color);
-
+	Voxel(glm::vec3 position, bool isActive);
 	glm::vec3 getPosition();
 	glm::vec3 getColor();
 	bool getIsActive();
@@ -26,6 +26,24 @@ private:
 	glm::vec3 position;
 	glm::vec3 color;
 };
+
+Voxel::Voxel() {
+	position = glm::vec3(0.0f);
+	color = glm::vec3(0.5f, 0.2f, 0.7f);
+	isActive = true;
+}
+
+Voxel::Voxel(glm::vec3 position, glm::vec3 color) {
+	this->position = position;
+	this->color = color;
+	isActive = true;
+}
+
+Voxel::Voxel(glm::vec3 position, bool isActive) {
+	this->position = position;
+	this->color = glm::vec3(0.0f);
+	this->isActive = isActive;
+}
 
 glm::vec3 Voxel::getPosition() {
 	return position;

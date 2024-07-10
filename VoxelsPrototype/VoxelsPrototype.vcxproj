@@ -136,11 +136,11 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\Dependencies\glad.c" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="systems.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
     <ClInclude Include="chunk.h" />
+    <ClInclude Include="chunkmanager.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="voxel.h" />
   </ItemGroup>

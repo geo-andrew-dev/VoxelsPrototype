@@ -17,6 +17,7 @@ public:
 	glm::vec3 getPosition();
 	glm::vec3 getColor();
 	bool getIsActive();
+	void setIsActive(bool flag);
 
 	void setPosition(glm::vec3 position);
 	void setColor(glm::vec3 color);
@@ -57,6 +58,9 @@ bool Voxel::getIsActive() {
 	return isActive;
 }
 
+void Voxel::setIsActive(bool flag) {
+	this->isActive = flag;
+}
 void Voxel::toggle() {
 	if (isActive) {
 		isActive = false;

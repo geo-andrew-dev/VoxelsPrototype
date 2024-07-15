@@ -7,6 +7,7 @@
 #include "chunk.h"
 #include "voxel.h"
 #include "shader.h"
+#include "camera.h"
 
 /*
 * Generates chunks and can generate various landscapes. Handles chunk loading, rendering, etc. gotta figure it out.
@@ -21,7 +22,7 @@ public:
 	//Load the chunk data into memory, including generating the mesh and preparing for rendering
 	void loadChunks();
 	//Render the chunk
-	void renderChunks();
+	void renderChunks(Camera* camera);
 
 private:
 	int chunkWidth, chunkHeight, chunkDepth;
@@ -40,14 +41,18 @@ ChunkManager::ChunkManager(int chunkWidth, int chunkHeight, int chunkDepth, int 
 	: chunkWidth(chunkWidth), chunkHeight(chunkHeight), chunkDepth(chunkDepth),
 	worldWidth(worldWidth), worldHeight(worldHeight), worldDepth(worldDepth), currentShader(currentShader) {
 	chunks.resize(worldWidth * worldHeight * worldDepth);
+	std::cout << "Chunks vector resized to: " << chunks.size() << std::endl; // Debugging statement"
 }
 
+
 void ChunkManager::createChunks() {
-	for (int x = 0; x < worldWidth; x++) {
-		for (int y = 0; y < worldHeight; y++) {
-			for (int z = 0; z < worldDepth; z++) {
+	for (int x = 0; x < worldWidth; ++x) {
+		for (int y = 0; y < worldHeight; ++y) {
+			for (int z = 0; z < worldDepth; ++z) {
 				int index = getChunkIndex(x, y, z);
 				chunks[index] = Chunk(chunkWidth, chunkHeight, chunkDepth);
+				generateVoxelData(chunks[index]);
+				std::cout << "Chunk created at index: " << index << std::endl; // Debugging statement""
 			}
 		}
 	}
@@ -63,6 +68,7 @@ void ChunkManager::generateVoxelData(Chunk& chunk) {
 	for (int x = 0; x < chunkWidth; ++x) {
 		for (int y = 0; y < chunkHeight; ++y) {
 			for (int z = 0; z < chunkDepth; ++z) {
+				std::cout << "In ChunkManager::generateVoxelData" << std::endl;
 				Voxel currentVoxel = Voxel(glm::vec3(x,y,z), glm::vec3(0.5f, 0.2f, 0.7f));
 				currentVoxel.setIsActive(true);
 				chunk.setVoxel(x, y, z, currentVoxel);
@@ -77,17 +83,42 @@ void ChunkManager::loadChunks() {
 	}
 }
 
-void ChunkManager::renderChunks() {
+void ChunkManager::renderChunks(Camera* camera) {
 	for (int x = 0; x < worldWidth; ++x) {
 		for (int y = 0; y < worldHeight; ++y) {
 			for (int z = 0; z < worldDepth; ++z) {
 				int index = getChunkIndex(x, y, z);
 				glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x * chunkWidth, y * chunkHeight, z * chunkDepth));
 				currentShader.setMat4("model", model);
-				chunks[index].render(shader, camera);
+				chunks[index].render(currentShader, *camera);
 			}
 		}
 	}
 }
+/*
 
+void ChunkManager::loadChunks() {
+	for (size_t i = 0; i < chunks.size(); ++i) {
+		std::cout << "Loading chunk at index: " << i << std::endl; // Debugging statement
+		chunks[i].buildMesh();
+	}
+}
+
+void ChunkManager::renderChunks(Camera* camera) {
+	for (int x = 0; x < worldWidth; ++x) {
+		for (int y = 0; y < worldHeight; ++y) {
+			for (int z = 0; z < worldDepth; ++z) {
+				int index = getChunkIndex(x, y, z);
+				if (index < 0 || index >= chunks.size()) {
+					std::cerr << "Error: Chunk index out of bounds: " << index << std::endl; // Debugging statement
+					continue;
+				}
+				glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x * chunkWidth, y * chunkHeight, z * chunkDepth));
+				currentShader.setMat4("model", model);
+				chunks[index].render(currentShader, *camera);
+			}
+		}
+	}
+}
+*/
 #endif

@@ -27,11 +27,12 @@ public:
     Voxel getVoxel(int x, int y, int z) const;
     void addFace(int x, int y, int z, const glm::vec3& normal, const std::vector<glm::vec3>& faceVertices, const glm::vec3& color);
     void buildMesh();
+    void render(const Shader& shader, const Camera& camera);
 
     std::vector<float> vertices;
 
 private:
-    int x, y, z; // Position of the chunk in the world
+    //int x, y, z; // Position of the chunk in the world, chunk class shouldnt need to know this
     int width, height, depth; //size dimensions of the chunk
     std::vector<Voxel> voxels;
     unsigned int VAO, VBO;
@@ -54,20 +55,172 @@ Chunk::Chunk(int width, int height, int depth) {
     this->width = width;   
     this->height = height;
     this->depth = depth;
+    voxels.resize(width * height * depth);
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 }
 
+//set an individual voxel within the chunk by index
 void Chunk::setVoxel(int x, int y, int z, const Voxel& voxel) {
     if (x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth) {
         voxels[index(x, y, z)] = voxel;
     }
 }
 
+Voxel Chunk::getVoxel(int x, int y, int z) const {
+    if (x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth) {
+        return voxels[index(x, y, z)];
+    }
+    std::cout << "Chunk::GetVoxel(int x, int y, inz) went out of bounds, returning default voxel" << std::endl;
+    return Voxel(); // Return a default voxel if out of bounds
+}
+
+//translate the chunk index from 3D (world representation) to 1D (vector representation)
 int Chunk::index(int x, int y, int z) const {
       return x + width * (y + height * z);
     }
 
+//loads up vertices for active voxels in the chunk, helper function for buildMesh
+void Chunk::addFace(int x, int y, int z, const glm::vec3& normal, const std::vector<glm::vec3>& faceVertices, const glm::vec3& color) {
+    std::cout << "adding face.." << std::endl;
+    for (const auto& vertex : faceVertices) {
+        vertices.push_back(vertex.x + x);
+        vertices.push_back(vertex.y + y);
+        vertices.push_back(vertex.z + z);
+        vertices.push_back(color.r);
+        vertices.push_back(color.g);
+        vertices.push_back(color.b);
+    }
+}
+
+void Chunk::buildMesh() {
+    std::cout<< "Building Mesh" << std::endl;
+    vertices.clear();
+
+    std::vector<glm::vec3> faceVertices = {
+        {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f},
+        {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f},
+        {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 1.0f}
+    };
+
+    for (int x = 0; x < width; ++x) {
+        for (int y = 0; y < height; ++y) {
+            for (int z = 0; z < depth; ++z) {
+                Voxel voxel = getVoxel(x, y, z);
+                glm::vec3 color = voxel.getColor();
+
+                if (voxel.getIsActive()) {
+                    std::cout << "About to add faces to an active voxel in a chunk... wweeeeeeee" << std::endl;
+                    // Add all six faces for the active voxel
+                    addFace(x, y, z, { -1.0f, 0.0f, 0.0f }, faceVertices, color);
+                    addFace(x, y, z, { 1.0f, 0.0f, 0.0f }, faceVertices, color);
+                    addFace(x, y, z, { 0.0f, -1.0f, 0.0f }, faceVertices, color);
+                    addFace(x, y, z, { 0.0f, 1.0f, 0.0f }, faceVertices, color);
+                    addFace(x, y, z, { 0.0f, 0.0f, -1.0f }, faceVertices, color);
+                    addFace(x, y, z, { 0.0f, 0.0f, 1.0f }, faceVertices, color);
+                }
+            }
+        }
+    }
+    
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    
+}
+/*
+void Chunk::buildMesh() {
+    vertices.clear();
+
+    std::vector<glm::vec3> faceVertices = {
+        {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}
+    };
+
+    for (int x = 0; x < width; ++x) {
+        for (int y = 0; y < height; ++y) {
+            for (int z = 0; z < depth; ++z) {
+                Voxel voxel = getVoxel(x, y, z);
+                glm::vec3 color = voxel.getColor();
+
+                if (voxel.getIsActive()) {
+                    // Check for neighboring voxels with boundary checks
+                    if (x == 0 || (x > 0 && !getVoxel(x - 1, y, z).getIsActive())) {
+                        addFace(x, y, z, { -1.0f, 0.0f, 0.0f }, faceVertices, color);
+                    }
+                    if (x == width - 1 || (x < width - 1 && !getVoxel(x + 1, y, z).getIsActive())) {
+                        addFace(x, y, z, { 1.0f, 0.0f, 0.0f }, faceVertices, color);
+                    }
+                    if (y == 0 || (y > 0 && !getVoxel(x, y - 1, z).getIsActive())) {
+                        addFace(x, y, z, { 0.0f, -1.0f, 0.0f }, faceVertices, color);
+                    }
+                    if (y == height - 1 || (y < height - 1 && !getVoxel(x, y + 1, z).getIsActive())) {
+                        addFace(x, y, z, { 0.0f, 1.0f, 0.0f }, faceVertices, color);
+                    }
+                    if (z == 0 || (z > 0 && !getVoxel(x, y, z - 1).getIsActive())) {
+                        addFace(x, y, z, { 0.0f, 0.0f, -1.0f }, faceVertices, color);
+                    }
+                    if (z == depth - 1 || (z < depth - 1 && !getVoxel(x, y, z + 1).getIsActive())) {
+                        addFace(x, y, z, { 0.0f, 0.0f, 1.0f }, faceVertices, color);
+                    }
+                }
+            }
+        }
+    }
+}
+*/
+/*
+void Chunk::buildMesh() {
+    vertices.clear();
+
+    std::vector<glm::vec3> faceVertices = {
+        {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f},
+        {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}
+    };
+
+    for (int x = 0; x < width; ++x) {
+        for (int y = 0; y < height; ++y) {
+            for (int z = 0; z < depth; ++z) {
+                Voxel voxel = getVoxel(x, y, z);
+                glm::vec3 color = voxel.getColor();
+
+                if (voxel.getIsActive()) {
+                    if (x == 0 || !getVoxel(x - 1, y, z).getIsActive()) addFace(x, y, z, { -1.0f, 0.0f, 0.0f }, faceVertices, color);
+                    if (x == width - 1 || !getVoxel(x + 1, y, z).getIsActive()) addFace(x, y, z, { 1.0f, 0.0f, 0.0f }, faceVertices, color);
+                    if (y == 0 || !getVoxel(x, y - 1, z).getIsActive()) addFace(x, y, z, { 0.0f, -1.0f, 0.0f }, faceVertices, color);
+                    if (y == height - 1 || !getVoxel(x, y + 1, z).getIsActive()) addFace(x, y, z, { 0.0f, 1.0f, 0.0f }, faceVertices, color);
+                    if (z == 0 || !getVoxel(x, y, z - 1).getIsActive()) addFace(x, y, z, { 0.0f, 0.0f, -1.0f }, faceVertices, color);
+                    if (z == depth - 1 || !getVoxel(x, y, z + 1).getIsActive()) addFace(x, y, z, { 0.0f, 0.0f, 1.0f }, faceVertices, color);
+                }
+            }
+        }
+    }
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+}
+*/
+void Chunk::render(const Shader& shader, const Camera& camera) {
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 6);
+    glBindVertexArray(0);
+}
+
+
+/*
+//buildmesh helper function, this populates the vertices vector
 void Chunk::addFace(int x, int y, int z, const glm::vec3& normal, const std::vector<glm::vec3>& faceVertices, const glm::vec3& color) {
     for (const auto& vertex : faceVertices) {
         vertices.push_back(vertex.x + x + this->x * width);
@@ -79,6 +232,7 @@ void Chunk::addFace(int x, int y, int z, const glm::vec3& normal, const std::vec
     }
 }
 
+//build vertices of the chunk, each chunk generates its own mesh, vertices are stored in the vertices vector
 void Chunk::buildMesh() {
     vertices.clear();
 
@@ -116,7 +270,12 @@ void Chunk::buildMesh() {
     glEnableVertexAttribArray(1);
 }
 
-
+//render da chunk
+void Chunk::render(const Shader& shader, const Camera& camera) {
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, (width * height * depth) * 36);
+    glBindVertexArray(0);
+}
 
 
 

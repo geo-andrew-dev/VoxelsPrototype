@@ -30,7 +30,7 @@ private:
 
 Voxel::Voxel() {
 	position = glm::vec3(0.0f);
-	color = glm::vec3(0.5f, 0.2f, 0.7f);
+	color = glm::vec3(0.9f, 0.9f, 0.9f);
 	isActive = true;
 }
 

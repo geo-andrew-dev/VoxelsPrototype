@@ -20,7 +20,7 @@ enum Camera_Movement {
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
 const float SPEED = 2.5f;
-const float SENSITIVITY = 0.6f;
+const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
 
 class Camera
@@ -61,6 +61,11 @@ public:
 	glm::mat4 GetViewMatrix()
 	{
 		return glm::lookAt(Position, Position + Front, Up);
+	}
+
+	glm::mat4 GetProjectionMatrix(float width, float height)
+	{
+		return glm::perspective(glm::radians(Zoom), width / height, 0.1f, 100.0f);
 	}
 
 	void ProcessKeyboard(Camera_Movement direction, float deltaTime)

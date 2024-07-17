@@ -22,7 +22,7 @@ public:
 	//Load the chunk data into memory, including generating the mesh and preparing for rendering
 	void loadChunks();
 	//Render the chunk
-	void renderChunks(Camera* camera);
+	void renderChunks(Camera* camera, int SCR_WIDTH, int SCR_HEIGHT);
 
 private:
 	int chunkWidth, chunkHeight, chunkDepth;
@@ -63,6 +63,7 @@ int ChunkManager::getChunkIndex(int x, int y, int z) const {
 	return x + worldWidth * (y + worldHeight * z);
 }
 
+/*
 void ChunkManager::generateVoxelData(Chunk& chunk) {
 	//flat terrain placeholder
 	for (int x = 0; x < chunkWidth; ++x) {
@@ -76,6 +77,24 @@ void ChunkManager::generateVoxelData(Chunk& chunk) {
 		}
 	}
 }
+*/
+
+void ChunkManager::generateVoxelData(Chunk& chunk) {
+	for (int x = 0; x < chunkWidth; ++x) {
+		for (int y = 0; y < chunkHeight; ++y) {
+			for (int z = 0; z < chunkDepth; ++z) {
+
+				glm::vec3 color = glm::vec3((float)rand() / RAND_MAX,
+					(float)rand() / RAND_MAX,
+					(float)rand() / RAND_MAX);
+
+				Voxel currentVoxel = Voxel(glm::vec3(x, y, z), color);
+				currentVoxel.setIsActive(true);
+				chunk.setVoxel(x, y, z, currentVoxel);
+			}
+		}
+	}
+}
 
 void ChunkManager::loadChunks() {
 	for (Chunk& chunk : chunks) {
@@ -83,42 +102,23 @@ void ChunkManager::loadChunks() {
 	}
 }
 
-void ChunkManager::renderChunks(Camera* camera) {
+void ChunkManager::renderChunks(Camera* camera, int SCR_WIDTH, int SCR_HEIGHT) {
+	currentShader.use(); // Activate the shader program
+
+	// Set the view and projection matrices from the camera
+	currentShader.setMat4("view", camera->GetViewMatrix());
+	currentShader.setMat4("projection", camera->GetProjectionMatrix(SCR_WIDTH, SCR_HEIGHT));
 	for (int x = 0; x < worldWidth; ++x) {
 		for (int y = 0; y < worldHeight; ++y) {
 			for (int z = 0; z < worldDepth; ++z) {
 				int index = getChunkIndex(x, y, z);
 				glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x * chunkWidth, y * chunkHeight, z * chunkDepth));
 				currentShader.setMat4("model", model);
+				//currentShader.setMat4("view", camera->GetViewMatrix());
 				chunks[index].render(currentShader, *camera);
 			}
 		}
 	}
 }
-/*
-
-void ChunkManager::loadChunks() {
-	for (size_t i = 0; i < chunks.size(); ++i) {
-		std::cout << "Loading chunk at index: " << i << std::endl; // Debugging statement
-		chunks[i].buildMesh();
-	}
-}
-
-void ChunkManager::renderChunks(Camera* camera) {
-	for (int x = 0; x < worldWidth; ++x) {
-		for (int y = 0; y < worldHeight; ++y) {
-			for (int z = 0; z < worldDepth; ++z) {
-				int index = getChunkIndex(x, y, z);
-				if (index < 0 || index >= chunks.size()) {
-					std::cerr << "Error: Chunk index out of bounds: " << index << std::endl; // Debugging statement
-					continue;
-				}
-				glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x * chunkWidth, y * chunkHeight, z * chunkDepth));
-				currentShader.setMat4("model", model);
-				chunks[index].render(currentShader, *camera);
-			}
-		}
-	}
-}
-*/
+ 
 #endif

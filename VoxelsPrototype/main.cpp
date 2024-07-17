@@ -26,9 +26,13 @@ bool firstMouse = true;
 Camera* camera;
 
 // screen resolution
+/*
+* original default:
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
-
+*/
+const unsigned int SCR_WIDTH = 1920;
+const unsigned int SCR_HEIGHT = 1080;
 int main()
 {
     //Initializing window things.
@@ -51,14 +55,14 @@ int main()
 	}
 
     //Camera set up
-    camera = new Camera();
+    camera = new Camera(glm::vec3(5.0f, 5.0f, 15.0f)); //camera starts at 0,0,10
     glfwSetCursorPosCallback(window, mouse_callback);
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glEnable(GL_DEPTH_TEST);
 
     Shader currentShader = Shader("Shaders/simplevertexshader3D.vs", "Shaders/simplefragmentshader.fs");
 
-    ChunkManager chunkManager = ChunkManager(16,16,16,10,10,10, currentShader);
+    ChunkManager chunkManager = ChunkManager(16,16,16,3,3,3, currentShader);
     chunkManager.createChunks();
     chunkManager.loadChunks();
 
@@ -68,20 +72,22 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
+        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+
         processInput(window);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        currentShader.use();
         //this part is something that I need to understand better
         //glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 view = camera->GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-        unsigned int modelLoc = glGetUniformLocation(currentShader.ID, "model");
-        unsigned int viewLoc = glGetUniformLocation(currentShader.ID, "view");
-        unsigned int projLoc = glGetUniformLocation(currentShader.ID, "projection");
-        currentShader.use();
-        chunkManager.renderChunks(camera);
+        //glm::mat4 view = camera->GetViewMatrix();
+        //glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        //unsigned int modelLoc = glGetUniformLocation(currentShader.ID, "model");
+        //unsigned int viewLoc = glGetUniformLocation(currentShader.ID, "view");
+        //unsigned int projLoc = glGetUniformLocation(currentShader.ID, "projection");
+        
+        chunkManager.renderChunks(camera, SCR_WIDTH, SCR_HEIGHT);
         glfwSwapBuffers(window);
         glfwPollEvents();
     }

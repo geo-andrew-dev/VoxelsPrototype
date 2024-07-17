@@ -12,8 +12,6 @@
 
 
 
-#endif CHUNK_H
-
 
 /*
 * Chunk class handles chunk data, VAO/VBO for each chunk. Chunk class does not handle generation or rendering of the chunk
@@ -28,6 +26,7 @@ public:
     void addFace(int x, int y, int z, const glm::vec3& normal, const std::vector<glm::vec3>& faceVertices, const glm::vec3& color);
     void buildMesh();
     void render(const Shader& shader, const Camera& camera);
+    void addQuad(float x1, float y1, float z1, float x2, float y2, float z2, const glm::vec3& color);
 
     std::vector<float> vertices;
 
@@ -82,7 +81,7 @@ int Chunk::index(int x, int y, int z) const {
 
 //loads up vertices for active voxels in the chunk, helper function for buildMesh
 void Chunk::addFace(int x, int y, int z, const glm::vec3& normal, const std::vector<glm::vec3>& faceVertices, const glm::vec3& color) {
-    std::cout << "adding face.." << std::endl;
+   // std::cout << "adding face.." << std::endl;
     for (const auto& vertex : faceVertices) {
         vertices.push_back(vertex.x + x);
         vertices.push_back(vertex.y + y);
@@ -93,6 +92,7 @@ void Chunk::addFace(int x, int y, int z, const glm::vec3& normal, const std::vec
     }
 }
 
+/*
 void Chunk::buildMesh() {
     std::cout<< "Building Mesh" << std::endl;
     vertices.clear();
@@ -111,7 +111,7 @@ void Chunk::buildMesh() {
                 glm::vec3 color = voxel.getColor();
 
                 if (voxel.getIsActive()) {
-                    std::cout << "About to add faces to an active voxel in a chunk... wweeeeeeee" << std::endl;
+                    //std::cout << "About to add faces to an active voxel in a chunk... wweeeeeeee" << std::endl;
                     // Add all six faces for the active voxel
                     addFace(x, y, z, { -1.0f, 0.0f, 0.0f }, faceVertices, color);
                     addFace(x, y, z, { 1.0f, 0.0f, 0.0f }, faceVertices, color);
@@ -122,6 +122,7 @@ void Chunk::buildMesh() {
                 }
             }
         }
+        std::cout << "Mesh built. Total vertices: " << vertices.size() / 6 << std::endl;
     }
     
     glBindVertexArray(VAO);
@@ -134,69 +135,30 @@ void Chunk::buildMesh() {
     glEnableVertexAttribArray(1);
     
 }
-/*
-void Chunk::buildMesh() {
-    vertices.clear();
-
-    std::vector<glm::vec3> faceVertices = {
-        {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}
-    };
-
-    for (int x = 0; x < width; ++x) {
-        for (int y = 0; y < height; ++y) {
-            for (int z = 0; z < depth; ++z) {
-                Voxel voxel = getVoxel(x, y, z);
-                glm::vec3 color = voxel.getColor();
-
-                if (voxel.getIsActive()) {
-                    // Check for neighboring voxels with boundary checks
-                    if (x == 0 || (x > 0 && !getVoxel(x - 1, y, z).getIsActive())) {
-                        addFace(x, y, z, { -1.0f, 0.0f, 0.0f }, faceVertices, color);
-                    }
-                    if (x == width - 1 || (x < width - 1 && !getVoxel(x + 1, y, z).getIsActive())) {
-                        addFace(x, y, z, { 1.0f, 0.0f, 0.0f }, faceVertices, color);
-                    }
-                    if (y == 0 || (y > 0 && !getVoxel(x, y - 1, z).getIsActive())) {
-                        addFace(x, y, z, { 0.0f, -1.0f, 0.0f }, faceVertices, color);
-                    }
-                    if (y == height - 1 || (y < height - 1 && !getVoxel(x, y + 1, z).getIsActive())) {
-                        addFace(x, y, z, { 0.0f, 1.0f, 0.0f }, faceVertices, color);
-                    }
-                    if (z == 0 || (z > 0 && !getVoxel(x, y, z - 1).getIsActive())) {
-                        addFace(x, y, z, { 0.0f, 0.0f, -1.0f }, faceVertices, color);
-                    }
-                    if (z == depth - 1 || (z < depth - 1 && !getVoxel(x, y, z + 1).getIsActive())) {
-                        addFace(x, y, z, { 0.0f, 0.0f, 1.0f }, faceVertices, color);
-                    }
-                }
-            }
-        }
-    }
-}
 */
-/*
 void Chunk::buildMesh() {
+    std::cout << "Building Mesh for chunk" << std::endl;
     vertices.clear();
-
-    std::vector<glm::vec3> faceVertices = {
-        {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}
-    };
 
     for (int x = 0; x < width; ++x) {
         for (int y = 0; y < height; ++y) {
             for (int z = 0; z < depth; ++z) {
                 Voxel voxel = getVoxel(x, y, z);
-                glm::vec3 color = voxel.getColor();
-
                 if (voxel.getIsActive()) {
-                    if (x == 0 || !getVoxel(x - 1, y, z).getIsActive()) addFace(x, y, z, { -1.0f, 0.0f, 0.0f }, faceVertices, color);
-                    if (x == width - 1 || !getVoxel(x + 1, y, z).getIsActive()) addFace(x, y, z, { 1.0f, 0.0f, 0.0f }, faceVertices, color);
-                    if (y == 0 || !getVoxel(x, y - 1, z).getIsActive()) addFace(x, y, z, { 0.0f, -1.0f, 0.0f }, faceVertices, color);
-                    if (y == height - 1 || !getVoxel(x, y + 1, z).getIsActive()) addFace(x, y, z, { 0.0f, 1.0f, 0.0f }, faceVertices, color);
-                    if (z == 0 || !getVoxel(x, y, z - 1).getIsActive()) addFace(x, y, z, { 0.0f, 0.0f, -1.0f }, faceVertices, color);
-                    if (z == depth - 1 || !getVoxel(x, y, z + 1).getIsActive()) addFace(x, y, z, { 0.0f, 0.0f, 1.0f }, faceVertices, color);
+                    glm::vec3 color = voxel.getColor();
+
+                    // Front face
+                    addQuad(x, y, z, x + 1, y + 1, z, color);
+                    // Back face
+                    addQuad(x, y, z + 1, x + 1, y + 1, z + 1, color);
+                    // Left face
+                    addQuad(x, y, z, x, y + 1, z + 1, color);
+                    // Right face
+                    addQuad(x + 1, y, z, x + 1, y + 1, z + 1, color);
+                    // Top face
+                    addQuad(x, y + 1, z, x + 1, y + 1, z + 1, color);
+                    // Bottom face
+                    addQuad(x, y, z, x + 1, y, z + 1, color);
                 }
             }
         }
@@ -210,137 +172,32 @@ void Chunk::buildMesh() {
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    std::cout << "Mesh built. Total vertices: " << vertices.size() / 6 << std::endl;
 }
-*/
+
+void Chunk::addQuad(float x1, float y1, float z1, float x2, float y2, float z2, const glm::vec3& color) {
+    vertices.insert(vertices.end(), {
+        x1, y1, z1, color.r, color.g, color.b,
+        x2, y1, z2, color.r, color.g, color.b,
+        x2, y2, z2, color.r, color.g, color.b,
+        x1, y1, z1, color.r, color.g, color.b,
+        x2, y2, z2, color.r, color.g, color.b,
+        x1, y2, z1, color.r, color.g, color.b
+        });
+}
+
+
 void Chunk::render(const Shader& shader, const Camera& camera) {
+    if (vertices.empty()) {
+        std::cout << "No vertices to render in chunk, returning..." << std::endl;
+        return;
+	}   
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 6);
     glBindVertexArray(0);
-}
-
-
-/*
-//buildmesh helper function, this populates the vertices vector
-void Chunk::addFace(int x, int y, int z, const glm::vec3& normal, const std::vector<glm::vec3>& faceVertices, const glm::vec3& color) {
-    for (const auto& vertex : faceVertices) {
-        vertices.push_back(vertex.x + x + this->x * width);
-        vertices.push_back(vertex.y + y + this->y * height);
-        vertices.push_back(vertex.z + z + this->z * depth);
-        vertices.push_back(color.r);
-        vertices.push_back(color.g);
-        vertices.push_back(color.b);
-    }
-}
-
-//build vertices of the chunk, each chunk generates its own mesh, vertices are stored in the vertices vector
-void Chunk::buildMesh() {
-    vertices.clear();
-
-    std::vector<glm::vec3> faceVertices = {
-        {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}
-    };
-
-    for (int x = 0; x < width; ++x) {
-        for (int y = 0; y < height; ++y) {
-            for (int z = 0; z < depth; ++z) {
-                Voxel voxel = getVoxel(x, y, z);
-                glm::vec3 color = voxel.getColor();
-
-                // Add faces only if there are no adjacent voxels in that direction
-                if (voxel.getIsActive()) {
-                    if (x == 0 || !getVoxel(x - 1, y, z).getIsActive()) addFace(x, y, z, { -1.0f, 0.0f, 0.0f }, faceVertices, color);
-                    if (x == width - 1 || !getVoxel(x + 1, y, z).getIsActive()) addFace(x, y, z, { 1.0f, 0.0f, 0.0f }, faceVertices, color);
-                    if (y == 0 || !getVoxel(x, y - 1, z).getIsActive()) addFace(x, y, z, { 0.0f, -1.0f, 0.0f }, faceVertices, color);
-                    if (y == height - 1 || !getVoxel(x, y + 1, z).getIsActive()) addFace(x, y, z, { 0.0f, 1.0f, 0.0f }, faceVertices, color);
-                    if (z == 0 || !getVoxel(x, y, z - 1).getIsActive()) addFace(x, y, z, { 0.0f, 0.0f, -1.0f }, faceVertices, color);
-                    if (z == depth - 1 || !getVoxel(x, y, z + 1).getIsActive()) addFace(x, y, z, { 0.0f, 0.0f, 1.0f }, faceVertices, color);
-                }
-            }
-        }
-    }
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-}
-
-//render da chunk
-void Chunk::render(const Shader& shader, const Camera& camera) {
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, (width * height * depth) * 36);
-    glBindVertexArray(0);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-
-void Chunk::buildMesh() {
-    vertices.clear();
-
-    std::vector<glm::vec3> faceVertices = {
-        {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 0.0f},
-        {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}
-    };
-
-    for (int x = 0; x < width; ++x) {
-        for (int y = 0; y < height; ++y) {
-            for (int z = 0; z < depth; ++z) {
-                Voxel voxel = getVoxel(x, y, z);
-                glm::vec3 color = voxel.getColor();
-
-                // Add faces only if there are no adjacent voxels in that direction
-                if (voxel.getIsActive()) {
-                    if (x == 0 || !getVoxel(x - 1, y, z).getIsActive()) addFace(x, y, z, { -1.0f, 0.0f, 0.0f }, faceVertices, color);
-                    if (x == width - 1 || !getVoxel(x + 1, y, z).getIsActive()) addFace(x, y, z, { 1.0f, 0.0f, 0.0f }, faceVertices, color);
-                    if (y == 0 || !getVoxel(x, y - 1, z).getIsActive()) addFace(x, y, z, { 0.0f, -1.0f, 0.0f }, faceVertices, color);
-                    if (y == height - 1 || !getVoxel(x, y + 1, z).getIsActive()) addFace(x, y, z, { 0.0f, 1.0f, 0.0f }, faceVertices, color);
-                    if (z == 0 || !getVoxel(x, y, z - 1).getIsActive()) addFace(x, y, z, { 0.0f, 0.0f, -1.0f }, faceVertices, color);
-                    if (z == depth - 1 || !getVoxel(x, y, z + 1).getIsActive()) addFace(x, y, z, { 0.0f, 0.0f, 1.0f }, faceVertices, color);
-                }
-            }
-        }
-    }
-
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-}
-
-void Chunk::render(Shader& shader, const glm::mat4& view, const glm::mat4& projection) {
-    glm::mat4 model = glm::mat4(1.0f);
-
-    shader.use();
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "model"), 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "view"), 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 6);
+    std::cout << "Chunk Rendered!!! vertex count: " << vertices.size() << std::endl;
+ 
 }
 
 #endif CHUNK_H
-
-*/

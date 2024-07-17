@@ -44,7 +44,6 @@ ChunkManager::ChunkManager(int chunkWidth, int chunkHeight, int chunkDepth, int 
 	std::cout << "Chunks vector resized to: " << chunks.size() << std::endl; // Debugging statement"
 }
 
-
 void ChunkManager::createChunks() {
 	for (int x = 0; x < worldWidth; ++x) {
 		for (int y = 0; y < worldHeight; ++y) {
@@ -63,34 +62,18 @@ int ChunkManager::getChunkIndex(int x, int y, int z) const {
 	return x + worldWidth * (y + worldHeight * z);
 }
 
-/*
-void ChunkManager::generateVoxelData(Chunk& chunk) {
-	//flat terrain placeholder
-	for (int x = 0; x < chunkWidth; ++x) {
-		for (int y = 0; y < chunkHeight; ++y) {
-			for (int z = 0; z < chunkDepth; ++z) {
-				std::cout << "In ChunkManager::generateVoxelData" << std::endl;
-				Voxel currentVoxel = Voxel(glm::vec3(x,y,z), glm::vec3(0.5f, 0.2f, 0.7f));
-				currentVoxel.setIsActive(true);
-				chunk.setVoxel(x, y, z, currentVoxel);
-			}
-		}
-	}
-}
-*/
-
 void ChunkManager::generateVoxelData(Chunk& chunk) {
 	for (int x = 0; x < chunkWidth; ++x) {
 		for (int y = 0; y < chunkHeight; ++y) {
 			for (int z = 0; z < chunkDepth; ++z) {
 
-				glm::vec3 color = glm::vec3((float)rand() / RAND_MAX,
-					(float)rand() / RAND_MAX,
-					(float)rand() / RAND_MAX);
+			glm::vec3 color = glm::vec3((float)rand() / RAND_MAX,
+			(float)rand() / RAND_MAX,
+			(float)rand() / RAND_MAX);
 
-				Voxel currentVoxel = Voxel(glm::vec3(x, y, z), color);
-				currentVoxel.setIsActive(true);
-				chunk.setVoxel(x, y, z, currentVoxel);
+			Voxel currentVoxel = Voxel(glm::vec3(x,y,z), color);
+			currentVoxel.setIsActive(true);
+			chunk.setVoxel(x, y, z, currentVoxel);
 			}
 		}
 	}

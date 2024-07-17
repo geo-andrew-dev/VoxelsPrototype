@@ -10,9 +10,6 @@
 #include "voxel.h"
 #include "shader.h"
 
-
-
-
 /*
 * Chunk class handles chunk data, VAO/VBO for each chunk. Chunk class does not handle generation or rendering of the chunk
 */
@@ -23,7 +20,6 @@ public:
     Chunk(int width, int height, int depth);
     void setVoxel(int x, int y, int z, const Voxel& voxel);
     Voxel getVoxel(int x, int y, int z) const;
-    void addFace(int x, int y, int z, const glm::vec3& normal, const std::vector<glm::vec3>& faceVertices, const glm::vec3& color);
     void buildMesh();
     void render(const Shader& shader, const Camera& camera);
     void addQuad(float x1, float y1, float z1, float x2, float y2, float z2, const glm::vec3& color);
@@ -79,63 +75,6 @@ int Chunk::index(int x, int y, int z) const {
       return x + width * (y + height * z);
     }
 
-//loads up vertices for active voxels in the chunk, helper function for buildMesh
-void Chunk::addFace(int x, int y, int z, const glm::vec3& normal, const std::vector<glm::vec3>& faceVertices, const glm::vec3& color) {
-   // std::cout << "adding face.." << std::endl;
-    for (const auto& vertex : faceVertices) {
-        vertices.push_back(vertex.x + x);
-        vertices.push_back(vertex.y + y);
-        vertices.push_back(vertex.z + z);
-        vertices.push_back(color.r);
-        vertices.push_back(color.g);
-        vertices.push_back(color.b);
-    }
-}
-
-/*
-void Chunk::buildMesh() {
-    std::cout<< "Building Mesh" << std::endl;
-    vertices.clear();
-
-    std::vector<glm::vec3> faceVertices = {
-        {0.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f},
-        {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
-        {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f},
-        {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 1.0f}
-    };
-
-    for (int x = 0; x < width; ++x) {
-        for (int y = 0; y < height; ++y) {
-            for (int z = 0; z < depth; ++z) {
-                Voxel voxel = getVoxel(x, y, z);
-                glm::vec3 color = voxel.getColor();
-
-                if (voxel.getIsActive()) {
-                    //std::cout << "About to add faces to an active voxel in a chunk... wweeeeeeee" << std::endl;
-                    // Add all six faces for the active voxel
-                    addFace(x, y, z, { -1.0f, 0.0f, 0.0f }, faceVertices, color);
-                    addFace(x, y, z, { 1.0f, 0.0f, 0.0f }, faceVertices, color);
-                    addFace(x, y, z, { 0.0f, -1.0f, 0.0f }, faceVertices, color);
-                    addFace(x, y, z, { 0.0f, 1.0f, 0.0f }, faceVertices, color);
-                    addFace(x, y, z, { 0.0f, 0.0f, -1.0f }, faceVertices, color);
-                    addFace(x, y, z, { 0.0f, 0.0f, 1.0f }, faceVertices, color);
-                }
-            }
-        }
-        std::cout << "Mesh built. Total vertices: " << vertices.size() / 6 << std::endl;
-    }
-    
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    
-}
-*/
 void Chunk::buildMesh() {
     std::cout << "Building Mesh for chunk" << std::endl;
     vertices.clear();
@@ -186,7 +125,6 @@ void Chunk::addQuad(float x1, float y1, float z1, float x2, float y2, float z2, 
         x1, y2, z1, color.r, color.g, color.b
         });
 }
-
 
 void Chunk::render(const Shader& shader, const Camera& camera) {
     if (vertices.empty()) {

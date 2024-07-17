@@ -142,6 +142,7 @@
     <ClInclude Include="chunk.h" />
     <ClInclude Include="chunkmanager.h" />
     <ClInclude Include="shader.h" />
+    <ClInclude Include="terrain.h" />
     <ClInclude Include="voxel.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

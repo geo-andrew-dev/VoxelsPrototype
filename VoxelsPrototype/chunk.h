@@ -9,7 +9,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "voxel.h"
 #include "shader.h"
-
+#include "terrain.h"
 /*
 * Chunk class handles chunk data, VAO/VBO for each chunk. Chunk class does not handle generation or rendering of the chunk
 */
@@ -23,15 +23,15 @@ public:
     void buildMesh();
     void render(const Shader& shader, const Camera& camera);
     void addQuad(float x1, float y1, float z1, float x2, float y2, float z2, const glm::vec3& color);
+    void setTerrain(Terrain terrain);
 
     std::vector<float> vertices;
-
+    Terrain* terrain;
 private:
     //int x, y, z; // Position of the chunk in the world, chunk class shouldnt need to know this
     int width, height, depth; //size dimensions of the chunk
     std::vector<Voxel> voxels;
     unsigned int VAO, VBO;
-
     //get the index of the voxel in the chunk (voxels) vector
     int index(int x, int y, int z) const;
 };
@@ -43,6 +43,7 @@ Chunk::Chunk() {
     depth = 3;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+   
 }
 
 //initialize the chunk with the given dimensions and generate the VAO and VBO
@@ -51,6 +52,7 @@ Chunk::Chunk(int width, int height, int depth) {
     this->height = height;
     this->depth = depth;
     voxels.resize(width * height * depth);
+    terrain = new Terrain();
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
 }
@@ -66,7 +68,7 @@ Voxel Chunk::getVoxel(int x, int y, int z) const {
     if (x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth) {
         return voxels[index(x, y, z)];
     }
-    std::cout << "Chunk::GetVoxel(int x, int y, inz) went out of bounds, returning default voxel" << std::endl;
+    //std::cout << "Chunk::GetVoxel(int x, int y, inz) went out of bounds, returning default voxel" << std::endl;
     return Voxel(); // Return a default voxel if out of bounds
 }
 
@@ -75,8 +77,9 @@ int Chunk::index(int x, int y, int z) const {
       return x + width * (y + height * z);
     }
 
+//TODO why dont top faces show
 void Chunk::buildMesh() {
-    std::cout << "Building Mesh for chunk" << std::endl;
+    //std::cout << "Building Mesh for chunk" << std::endl;
     vertices.clear();
 
     for (int x = 0; x < width; ++x) {
@@ -112,9 +115,10 @@ void Chunk::buildMesh() {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    std::cout << "Mesh built. Total vertices: " << vertices.size() / 6 << std::endl;
+    //std::cout << "Mesh built. Total vertices: " << vertices.size() / 6 << std::endl;
 }
 
+//needs to be changed to support textures
 void Chunk::addQuad(float x1, float y1, float z1, float x2, float y2, float z2, const glm::vec3& color) {
     vertices.insert(vertices.end(), {
         x1, y1, z1, color.r, color.g, color.b,
@@ -126,6 +130,7 @@ void Chunk::addQuad(float x1, float y1, float z1, float x2, float y2, float z2, 
         });
 }
 
+//this shouldnt need to change any time soon
 void Chunk::render(const Shader& shader, const Camera& camera) {
     if (vertices.empty()) {
         std::cout << "No vertices to render in chunk, returning..." << std::endl;
@@ -134,8 +139,11 @@ void Chunk::render(const Shader& shader, const Camera& camera) {
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 6);
     glBindVertexArray(0);
-    std::cout << "Chunk Rendered!!! vertex count: " << vertices.size() << std::endl;
+
+    //this cout was responsible for dropping to unusably low FPS. Avoid COUT in render loop
+    // the point of logging libraries is to be able to do this asynchronously for us
+    //std::cout << "Chunk Rendered!!! vertex count: " << vertices.size() << std::endl;
  
 }
 
-#endif CHUNK_H
+#endif CHUNK_H 

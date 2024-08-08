@@ -8,6 +8,7 @@
 #include "voxel.h"
 #include "shader.h"
 #include "camera.h"
+#include "terrain.h"
 
 /*
 * Generates chunks and can generate various landscapes. Handles chunk loading, rendering, etc. gotta figure it out.
@@ -23,18 +24,19 @@ public:
 	void loadChunks();
 	//Render the chunk
 	void renderChunks(Camera* camera, int SCR_WIDTH, int SCR_HEIGHT);
-
+	
 private:
 	int chunkWidth, chunkHeight, chunkDepth;
 	int worldWidth, worldHeight, worldDepth;
 	std::vector<Chunk> chunks;
-
+	
 	Shader currentShader;
 
 	int getChunkIndex(int x, int y, int z) const;
 	
 	//IMPORTANT This is where you will generate the voxel data for the chunk terrain
-	void generateVoxelData(Chunk& chunk);
+	void generateVoxelData(Chunk& chunk, Terrain *terrain);
+	//void generateVoxelData(Chunk& chunk);
 };
 
 ChunkManager::ChunkManager(int chunkWidth, int chunkHeight, int chunkDepth, int worldWidth, int worldHeight, int worldDepth, Shader currentShader)
@@ -44,14 +46,18 @@ ChunkManager::ChunkManager(int chunkWidth, int chunkHeight, int chunkDepth, int 
 	std::cout << "Chunks vector resized to: " << chunks.size() << std::endl; // Debugging statement"
 }
 
+//generates a terrain object and a chunk, generates its voxel data, and stores it in the chunks vector
 void ChunkManager::createChunks() {
 	for (int x = 0; x < worldWidth; ++x) {
 		for (int y = 0; y < worldHeight; ++y) {
 			for (int z = 0; z < worldDepth; ++z) {
 				int index = getChunkIndex(x, y, z);
+				Terrain* terrain = new Terrain();
+				terrain->generateHeightMap();
 				chunks[index] = Chunk(chunkWidth, chunkHeight, chunkDepth);
-				generateVoxelData(chunks[index]);
-				std::cout << "Chunk created at index: " << index << std::endl; // Debugging statement""
+				generateVoxelData(chunks[index], terrain);
+				//generateVoxelData(chunks[index]);
+				//std::cout << "Chunk created at index: " << index << std::endl; // Debugging statement""
 			}
 		}
 	}
@@ -62,6 +68,7 @@ int ChunkManager::getChunkIndex(int x, int y, int z) const {
 	return x + worldWidth * (y + worldHeight * z);
 }
 
+/*
 void ChunkManager::generateVoxelData(Chunk& chunk) {
 	for (int x = 0; x < chunkWidth; ++x) {
 		for (int y = 0; y < chunkHeight; ++y) {
@@ -74,6 +81,30 @@ void ChunkManager::generateVoxelData(Chunk& chunk) {
 			Voxel currentVoxel = Voxel(glm::vec3(x,y,z), color);
 			currentVoxel.setIsActive(true);
 			chunk.setVoxel(x, y, z, currentVoxel);
+			}
+		}
+	}
+}
+*/
+
+
+void ChunkManager::generateVoxelData(Chunk& chunk, Terrain *terrain) {
+	for (int x = 0; x < chunkWidth; ++x) {
+		for (int z = 0; z < chunkDepth; ++z) {
+			int currentY = terrain->heightMap[x][z];
+			for (int y = 0; y < chunkHeight; ++y) {
+				glm::vec3 color = glm::vec3((float)rand() / RAND_MAX,
+					(float)rand() / RAND_MAX,
+					(float)rand() / RAND_MAX);
+
+				Voxel currentVoxel = Voxel(glm::vec3(x, y, z), color);
+
+				if (y < currentY) {
+					currentVoxel.setIsActive(true);
+				}
+				//currentVoxel.setIsActive(true);
+				chunk.setVoxel(x, y, z, currentVoxel);
+				//std::cout << "Generated voxel regarding heightmap... maybe" << std::endl; // Debugging statement""
 			}
 		}
 	}

@@ -31,13 +31,13 @@ private:
 Voxel::Voxel() {
 	position = glm::vec3(0.0f);
 	color = glm::vec3(0.9f, 0.9f, 0.9f);
-	isActive = true;
+	isActive = false;
 }
 
 Voxel::Voxel(glm::vec3 position, glm::vec3 color) {
 	this->position = position;
 	this->color = color;
-	isActive = true;
+	isActive = false;
 }
 
 Voxel::Voxel(glm::vec3 position, bool isActive) {
